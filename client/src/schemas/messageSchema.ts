@@ -1,7 +1,8 @@
 import {z} from "zod"
 
-export const usernameValidation = z
-.string()
-.min(2 , "Username must be atleast 2 characters")
-.max(20 , "Username must be no more then 20")
-// .regex()
+export const messageSchema = z.object({
+    content : z
+    .string()
+    .min(10 , {message : "Content must be at least of 10 characters"})
+    .max(300, {message : "Content must be no longer then 300 characters"})
+})
