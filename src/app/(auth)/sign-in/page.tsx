@@ -1,20 +1,123 @@
 'use client'
-import { useSession, signIn, signOut } from "next-auth/react"
+import React, { useEffect, useState } from 'react'
+import {  useForm } from "react-hook-form"
+import * as z from "zod"
+import Link from 'next/link'
+import { useDebounceValue } from "usehooks-ts"
+import toast from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
+import { signUpSchema } from '@/schemas/signupSchema'
+import { zodResolver } from "@hookform/resolvers/zod";
+import axios, { AxiosError } from "axios"
+import { ApiResponse } from '@/types/ApiResponse'
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 
 const page = () => {
-  const { data: session } = useSession()
-  if (session) {
-    return (
-      <>
-        Signed In as {session?.user.email} <br />
-        <button onClick={() => signOut()}>Sign out</button>
-      </>
-    )
+
+  const [username, setUsername] = useState("")
+  const [usernameMessage, setUsernameMessage] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const debouncedUsername = useDebounceValue(username, 300)
+  const router = useRouter()
+
+  // zod implementation
+  const form = useForm<z.infer<typeof signUpSchema>>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      username: '',
+      email: '',
+      password: ''
+    }
+  })
+
+  useEffect(() => {
+    const checkUsernameUnique = async () => {
+      if (debouncedUsername) {
+        setLoading(true)
+        setUsernameMessage('')
+        try {
+          const response = await axios.get(`/api/check-username-unique?username=${debouncedUsername}`)
+          setUsernameMessage(response.data.message)
+        } catch (error) {
+          const axiosError = error as AxiosError<ApiResponse>
+          setUsernameMessage(axiosError.response?.data.message ?? "Error checking username")
+        }
+        finally {
+          setLoading(false)
+        }
+      }
+    }
+    checkUsernameUnique()
+  }, [debouncedUsername])
+
+  const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
+    setLoading(true)
+    try {
+      const response = await axios.post<ApiResponse>("/api/sign-up", data)
+      toast.success(response.data.message)
+      router.replace(`/verify/${username}`)
+      setLoading(false)
+    } catch (error) {
+      console.error("Error in signup of user : ", error)
+      const axiosError = error as AxiosError<ApiResponse>
+      let errorMessage = axiosError.response?.data.message;
+      toast.error("Error")
+      setLoading(false)
+    }
   }
+
   return (
-    <div>
-      Not signed in <br />
-      <button className="bg-orange-500 px-3 py-1 m-4 rounded cursor-pointer" onClick={() => signIn()}>Sign in</button>
+    <div className="flex justify-center items-center min-h-screen bg-gray-800">
+      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+        <div className="text-center">
+          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
+            Welcome Back to True Feedback
+          </h1>
+          <p className="mb-4">Sign in to continue your secret conversations</p>
+        </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              name="identifier"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email/Username</FormLabel>
+                  <Input {...field} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="password"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <Input type="password" {...field} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button className='w-full' type="submit">Sign In</Button>
+          </form>
+        </Form>
+        <div className="text-center mt-4">
+          <p>
+            Not a member yet?{' '}
+            <Link href="/sign-up" className="text-blue-600 hover:text-blue-800">
+              Sign up
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
   )
 }
