@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export { default } from "next-auth/middleware"
 import { getToken } from "next-auth/jwt";
@@ -12,7 +12,11 @@ export const middleware = async (request: NextRequest) => {
         return NextResponse.redirect(new URL("/deshboard", request.url))
     }
 
-    return NextResponse.redirect(new URL("/home", request.url))
+    if (!token && url.pathname.startsWith('/dashboard')) {
+        return NextResponse.redirect(new URL("/sign-in", request.url))
+    }
+
+    return NextResponse.next()
 }
 
 
