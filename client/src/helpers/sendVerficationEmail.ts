@@ -7,7 +7,7 @@ import { url } from "inspector";
 export const sendVerificationEmail = async (email: string, username: string, verifyCode: string): Promise<ApiResponse> => {
     try {
         await resend.emails.send({
-            from: "",
+            from: "24bcs147@iiitdwd.ac.in",
             to: email,
             subject: "Mystry message | Verification code",
             react: VerificationEmail({ username, otp: verifyCode })
