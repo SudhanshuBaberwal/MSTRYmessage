@@ -1,85 +1,58 @@
-'use client'
-import React, { useEffect, useState } from 'react'
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import Link from 'next/link'
-import { useDebounceValue } from "usehooks-ts"
-import toast from 'react-hot-toast'
-import { useRouter } from 'next/navigation'
-import { signUpSchema } from '@/schemas/signupSchema' 
-import { zodResolver } from "@hookform/resolvers/zod"
-import axios, { AxiosError } from "axios"
-import { ApiResponse } from '@/types/ApiResponse'
-import debounce from "lodash.debounce"
-import { Eye, EyeOff } from "lucide-react" 
+'use client';
+
+import React, { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { signIn } from 'next-auth/react';
 import {
   Form,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from "@/components/ui/form"
-import { Input } from '@/components/ui/input'
-import { Button } from "@/components/ui/button" 
+  FormMessage,
+} from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { signInSchema } from '@/schemas/signinSchema';
+import toast from 'react-hot-toast';
+import { Eye, EyeOff } from 'lucide-react'; // Added for password visibility toggle
 
-const SignInPage = () => {
-
-  const [username, setUsername] = useState("")
-  const [usernameMessage, setUsernameMessage] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [debouncedUsername] = useDebounceValue(username, 300)
+export default function SignInForm() {
+  const router = useRouter();
   
-  const [showPassword, setShowPassword] = useState(false)
-  
-  const router = useRouter()
+  // Added state for the password toggle
+  const [showPassword, setShowPassword] = useState(false);
 
-  const form = useForm<z.infer<typeof signUpSchema>>({
-    resolver: zodResolver(signUpSchema),
+  const form = useForm<z.infer<typeof signInSchema>>({
+    resolver: zodResolver(signInSchema),
     defaultValues: {
-      username: '',
-      email: '',
-      password: ''
-    }
-  })
+      identifier: '',
+      password: '',
+    },
+  });
 
-  useEffect(() => {
-    const checkUsernameUnique = async () => {
-      if (debouncedUsername) {
-        setLoading(true)
-        setUsernameMessage('')
-        try {
-          const debouncedCheck = debounce(async (uname: string) => {
-            const res = await fetch(`/api/check-username-unique?username=${uname}`)
-          }, 500)
-          console.log(debouncedCheck)
-        } catch (error) {
-          const axiosError = error as AxiosError<ApiResponse>
-          setUsernameMessage(axiosError.response?.data.message ?? "Error checking username")
-        }
-        finally {
-          setLoading(false)
-        }
+  const onSubmit = async (data: z.infer<typeof signInSchema>) => {
+    const result = await signIn('credentials', {
+      redirect: false,
+      identifier: data.identifier,
+      password: data.password,
+    });
+
+    if (result?.error) {
+      if (result.error === 'CredentialsSignin') {
+        toast.error("Incorrect email/username or password");
+      } else {
+        toast.error(result.error);
       }
     }
-    checkUsernameUnique()
-  }, [debouncedUsername])
 
-  const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
-    setLoading(true)
-    try {
-      const response = await axios.post<ApiResponse>("/api/sign-up", data)
-      toast.success(response.data.message)
-      router.replace(`/verify/${username}`)
-      setLoading(false)
-    } catch (error) {
-      console.error("Error in signup of user : ", error)
-      const axiosError = error as AxiosError<ApiResponse>
-      let errorMessage = axiosError.response?.data.message;
-      toast.error("Error")
-      setLoading(false)
+    if (result?.url) {
+      router.replace('/dashboard');
     }
-  }
+  };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-[#F8FAFC] p-4 sm:p-8 font-sans">
@@ -96,8 +69,9 @@ const SignInPage = () => {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            
             <FormField
-              name="username"
+              name="identifier"
               control={form.control}
               render={({ field }) => (
                 <FormItem>
@@ -106,10 +80,6 @@ const SignInPage = () => {
                     {...field} 
                     className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-900 rounded-xl h-12 px-4 shadow-sm"
                     placeholder="Enter your email or username"
-                    onChange={(e) => {
-                      field.onChange(e)
-                      setUsername(e.target.value) 
-                    }} 
                   />
                   <FormMessage className="text-rose-500" />
                 </FormItem>
@@ -121,17 +91,19 @@ const SignInPage = () => {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  {/* Updated Label area with Forgot Password link */}
+                  {/* Label area with Forgot Password link */}
                   <div className="flex justify-between items-center">
                     <FormLabel className="text-slate-700 font-semibold">Password</FormLabel>
                     <Link 
                       href="/forgot-password" 
                       className="text-sm font-semibold text-slate-500 hover:text-slate-900 hover:underline underline-offset-4 transition-colors"
-                      tabIndex={-1} // Prevents breaking the tab flow between inputs
+                      tabIndex={-1} 
                     >
                       Forgot password?
                     </Link>
                   </div>
+                  
+                  {/* Password Input with Toggle */}
                   <div className="relative">
                     <Input 
                       type={showPassword ? "text" : "password"} 
@@ -160,9 +132,9 @@ const SignInPage = () => {
             <Button 
               className="w-full h-12 bg-slate-900 text-white hover:bg-slate-800 font-semibold rounded-xl mt-8 shadow-sm" 
               type="submit"
-              disabled={loading}
+              disabled={form.formState.isSubmitting} // Automatically handles loading state during NextAuth signIn
             >
-              {loading ? "Signing in..." : "Sign In"}
+              {form.formState.isSubmitting ? "Signing in..." : "Sign In"}
             </Button>
           </form>
         </Form>
@@ -178,7 +150,5 @@ const SignInPage = () => {
 
       </div>
     </div>
-  )
+  );
 }
-
-export default SignInPage
