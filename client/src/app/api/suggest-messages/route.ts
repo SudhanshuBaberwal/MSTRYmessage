@@ -1,26 +1,23 @@
-import { streamText } from "ai";
-import { openai } from "@ai-sdk/openai";
-import { NextResponse } from "next/server";
+import Groq from "groq-sdk";
 
-export const runtime = "edge";
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+});
 
-export async function POST(req: Request) {
-  try {
-    const prompt =
-      "Create a list of three open-ended and engaging questions formatted as a single string. Each question should be separated by '||'. These questions are for an anonymous social messaging platform, like Qooh.me, and should be suitable for a diverse audience.";
+export async function POST() {
+  const completion = await groq.chat.completions.create({
+    model: "llama-3.1-8b-instant",
+    max_tokens: 60,
+    temperature: 0.9,
+    messages: [
+      {
+        role: "user",
+        content: "Create three open-ended anonymous questions separated by ||",
+      },
+    ],
+  });
 
-    const result = streamText({
-      model: openai("gpt-4o-mini"),
-      prompt,
-    });
-
-    return result.toTextStreamResponse();
-  } catch (error) {
-    console.error("Unexpected error:", error);
-
-    return NextResponse.json(
-      { message: "Something went wrong" },
-      { status: 500 }
-    );
-  }
+  return Response.json({
+    text: completion.choices[0].message.content,
+  });
 }
