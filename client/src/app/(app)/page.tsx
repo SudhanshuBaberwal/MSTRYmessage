@@ -1,10 +1,12 @@
 'use client'
 import React from 'react'
+import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel'
+import { Button } from '@/components/ui/button'
 import messages from "@/messages.json"
 import Autoplay from "embla-carousel-autoplay"
-import { Quote } from 'lucide-react' // Swapped Mail for Quote to fit the premium aesthetic
+import { Quote, ArrowRight } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -18,13 +20,13 @@ export default function Home() {
 
           {/* Subtle Status Badge */}
           <div className="inline-flex items-center justify-center px-4 py-1.5 mb-2 text-sm font-semibold tracking-wide text-slate-900 bg-white border border-slate-200 rounded-full shadow-sm">
-            <span className="flex w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
+            <span className="flex w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
             Now open for feedback
           </div>
 
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900">
             Dive into the World of <br className="hidden md:block mt-2" />
-            <span className="text-transparent bg-clip-text bg-linear-to-r from-slate-900 to-slate-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-500">
               Anonymous Feedback
             </span>
           </h1>
@@ -32,19 +34,28 @@ export default function Home() {
           <p className="text-base md:text-xl text-slate-500 font-medium max-w-2xl mx-auto mt-6">
             True Feedback — Where your identity remains a secret, and your words make a genuine impact.
           </p>
+
+          {/* Call to Action Button */}
+          <div className="flex justify-center pt-6">
+            <Link href="/dashboard">
+              <Button className="h-14 px-8 rounded-full bg-slate-900 text-white font-bold text-lg hover:bg-slate-800 hover:scale-105 hover:shadow-xl transition-all flex items-center gap-2 group">
+                Go to Dashboard
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          </div>
         </section>
 
         {/* Carousel for Messages */}
         <div className="w-full max-w-lg md:max-w-2xl px-4">
           <Carousel
-            plugins={[Autoplay({ delay: 3000 })]} // Slightly increased delay so users can read the text
+            plugins={[Autoplay({ delay: 3000 })]} 
             className="w-full"
-            opts={{ loop: true }} // Added loop so the carousel doesn't awkwardly stop at the end
+            opts={{ loop: true }} 
           >
             <CarouselContent className="-ml-4">
               {messages.map((message, index) => (
                 <CarouselItem key={index} className="pl-4 md:basis-1/1">
-                  {/* Extra padding inside the item to prevent the shadow from being clipped by the carousel wrapper */}
                   <div className="p-4">
                     <Card className="bg-white border-slate-100 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
                       <CardContent className="p-8 sm:p-10 flex flex-col items-center text-center space-y-6">
@@ -78,6 +89,7 @@ export default function Home() {
           </Carousel>
         </div>
       </main>
+      
       {/* Footer */}
       <footer className="w-full border-t border-slate-100 bg-white py-8 text-center">
         <p className="text-slate-500 text-sm font-medium">

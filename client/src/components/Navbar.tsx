@@ -36,7 +36,7 @@ function Navbar() {
               <Button 
                 onClick={() => signOut()} 
                 variant="outline"
-                className="h-10 px-5 rounded-xl border-slate-700 bg-slate-900/50 text-slate-300 font-semibold hover:bg-slate-800 hover:text-white transition-colors"
+                className="cursor-pointer h-10 px-5 rounded-xl border-slate-700 bg-slate-900/50 text-slate-300 font-semibold hover:bg-slate-800 hover:text-white transition-colors"
               >
                 Logout
               </Button>
