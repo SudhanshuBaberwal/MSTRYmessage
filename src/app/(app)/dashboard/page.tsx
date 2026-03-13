@@ -23,14 +23,15 @@ const DashboardPage = () => {
     const [baseUrl, setBaseUrl] = useState("")
 
     const handleDeleteMessage = (messageId: string) => {
-        // setMessages(messages.filter((message) => message._id !== messageId))
-    }
-
+        setMessages((prevMessages) =>
+            prevMessages.filter((message) => message._id.toString() !== messageId)
+        );
+    };
     const { data: session } = useSession()
     const form = useForm({
         resolver: zodResolver(AcceptMessageSchema)
     })
-    
+
     const { register, watch, setValue } = form
     const acceptMessages = watch('acceptMessages')
 
@@ -66,14 +67,14 @@ const DashboardPage = () => {
             setLoading(false)
             setIsSwitchLoading(false)
         }
-    }, []) 
+    }, [])
 
     useEffect(() => {
         if (!session || !session.user) return
         fetchMessages()
         fetchAcceptMessage()
     }, [session, setValue, fetchAcceptMessage, fetchMessages])
-    
+
     const handleSwitchChange = async () => {
         try {
             const response = await axios.post<ApiResponse>("/api/accept-messages", { acceptMessages: !acceptMessages })
@@ -84,16 +85,16 @@ const DashboardPage = () => {
             toast.error(axiosError.response?.data.message || "Failed to update message setting")
         }
     }
-    
+
     const username = session?.user?.username
 
     useEffect(() => {
         const url = `${window.location.protocol}//${window.location.host}`;
         setBaseUrl(url);
     }, []);
-    
+
     const profileUrl = `${baseUrl}/u/${username}`
-    
+
     const copyToClipboard = () => {
         navigator.clipboard.writeText(profileUrl)
         toast.success("URL Copied to clipboard!")
@@ -109,11 +110,11 @@ const DashboardPage = () => {
 
     return (
         <div className="min-h-screen bg-slate-950 font-sans relative pb-16 overflow-x-hidden">
-            
+
             <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-indigo-900/20 blur-[120px] rounded-full pointer-events-none z-0"></div>
 
             <div className="relative z-10 my-8 px-4 md:px-8 mx-auto w-full max-w-6xl space-y-8">
-                
+
                 <header>
                     <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-100">
                         User Dashboard
@@ -122,7 +123,7 @@ const DashboardPage = () => {
                 </header>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
+
                     <div className="lg:col-span-2 bg-slate-900/60 backdrop-blur-xl border border-slate-800/60 rounded-[1.5rem] p-5 md:p-6 shadow-xl overflow-hidden">
                         <h2 className="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2">
                             <LinkIcon className="w-5 h-5 text-indigo-400" />
@@ -135,7 +136,7 @@ const DashboardPage = () => {
                                 readOnly
                                 className="w-full min-w-0 bg-slate-950/50 border border-slate-800 text-slate-300 rounded-xl h-12 px-4 focus:outline-none focus:border-indigo-500/50 text-ellipsis"
                             />
-                            <Button 
+                            <Button
                                 onClick={copyToClipboard}
                                 className="w-full sm:w-auto h-12 px-6 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors shrink-0 flex items-center justify-center gap-2"
                             >
@@ -179,7 +180,7 @@ const DashboardPage = () => {
                             <Inbox className="w-6 h-6 text-indigo-400" />
                             Your Inbox
                         </h2>
-                        
+
                         <Button
                             variant="outline"
                             onClick={(e) => {
@@ -196,7 +197,7 @@ const DashboardPage = () => {
                             Refresh Messages
                         </Button>
                     </div>
-                    
+
                     {messages.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                             {messages.map((message) => (
