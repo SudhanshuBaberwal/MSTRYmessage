@@ -26,7 +26,7 @@ export default function Home() {
 
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900">
             Dive into the World of <br className="hidden md:block mt-2" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-500">
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-slate-900 to-slate-500">
               Anonymous Feedback
             </span>
           </h1>

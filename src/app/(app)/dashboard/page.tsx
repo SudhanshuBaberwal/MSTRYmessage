@@ -111,7 +111,7 @@ const DashboardPage = () => {
     return (
         <div className="min-h-screen bg-slate-950 font-sans relative pb-16 overflow-x-hidden">
 
-            <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-indigo-900/20 blur-[120px] rounded-full pointer-events-none z-0"></div>
+            <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-175 h-125 bg-indigo-900/20 blur-[120px] rounded-full pointer-events-none z-0"></div>
 
             <div className="relative z-10 my-8 px-4 md:px-8 mx-auto w-full max-w-6xl space-y-8">
 
